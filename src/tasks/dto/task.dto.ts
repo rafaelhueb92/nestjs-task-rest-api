@@ -1,5 +1,5 @@
 import { IsNotEmpty, IsEnum } from 'class-validator';
-import { TaskStatus } from '../tasks.model';
+import { TaskStatus } from '../tasks-status.enum';
 
 export class createTaskDTO {
   // eslint-disable-next-line @typescript-eslint/no-unsafe-call
