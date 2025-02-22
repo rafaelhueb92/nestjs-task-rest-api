@@ -1,15 +1,19 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { TaskStatus } from './tasks-status.enum';
 import { createTaskDTO } from './dto/task.dto';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Task } from './task.entity';
+import { RedisService } from 'src/redis/redis.service';
 
 @Injectable()
 export class TasksService {
+  private readonly logger = new Logger(TasksService.name); // Using global logger
+
   constructor(
     @InjectRepository(Task)
     private taskRepository: Repository<Task>,
+    private readonly redisCacheService: RedisService,
   ) {}
 
   async getAllTasks(): Promise<Task[]> {
@@ -17,10 +21,21 @@ export class TasksService {
   }
 
   async getTaskById(id: string): Promise<Task> {
+    const cachedTask: Task = (await this.redisCacheService.getCache(
+      id,
+    )) as Task;
+    this.logger.log('cachedTask', cachedTask);
+    if (cachedTask) {
+      this.logger.log('Returning from cache');
+      return cachedTask;
+    }
+
     const found = await this.taskRepository.findOne({ where: { id } });
     if (!found) {
       throw new NotFoundException(`Task with ID ${id} not found!`);
     }
+
+    await this.redisCacheService.setCache(id, JSON.stringify(found));
 
     return found;
   }

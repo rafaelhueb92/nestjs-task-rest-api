@@ -1,6 +1,9 @@
 import { Module } from '@nestjs/common';
 import { TasksModule } from './tasks/tasks.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { RedisModule } from './redis/redis.module';
+import { LoggerModule } from './logger/logger.module';
+
 @Module({
   imports: [
     TasksModule,
@@ -14,6 +17,8 @@ import { TypeOrmModule } from '@nestjs/typeorm';
       autoLoadEntities: true,
       synchronize: true,
     }),
+    RedisModule,
+    LoggerModule,
   ],
 })
 export class AppModule {}
